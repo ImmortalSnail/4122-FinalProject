@@ -34,7 +34,7 @@ You can use the interactive widgets provided by Streamlit to modify the visualiz
 
 The COVID-19 data used in this app is sourced from Our World in Data as well as the NYT, 
 which provides up-to-date and reliable data on COVID-19 cases, deaths, and vaccination rates from around the world.
-Note, if running this locally you will need a copy of the data sets from Our World in Data/ NYT, otherwise the app will not work.
+Note, if running the data set is compressed in 7z format, you must decompress it or it will not work.
 
 ## Technologies Used
 
