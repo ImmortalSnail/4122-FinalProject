@@ -8,9 +8,9 @@ from vega_datasets import data
 # Loading relevant data
 counties = alt.topo_feature(data.us_10m.url, 'counties')
 states = alt.topo_feature(data.us_10m.url, feature='states')
-stateData = pd.read_csv('COVID19_state.csv')
-countiesData =  pd.read_csv('us-counties.csv')
-countiesData = countiesData.sample(n=4999)
+state_data = pd.read_csv('COVID19_state.csv')
+counties_data = pd.read_csv('us-counties.csv')
+counties_data = counties_data.sample(n=4999)
 
 # Choropleth generating function
 # topo is the feature the choropleth is focusing on, like either states or counties
@@ -24,7 +24,7 @@ def generate_choropleth(topo, lookup, data, color):
         tooltip=[lookup+':O', data+':Q']
     ).transform_lookup(
         lookup='id',
-        from_=alt.LookupData(stateData, 'id', [data,lookup])
+        from_=alt.LookupData(state_data, 'id', [data,lookup])
     ).project('albersUsa').properties(
         width=800,
         height=800
@@ -40,22 +40,22 @@ def page1():
     st.title( "What choropleth would you like to see regarding COVID-19 Stats")
 
     # Initializing radio button
-    radioBTN = st.radio(
+    radio_btn = st.radio(
     "Choropleth Options",
         ('Covid 19 Deaths Per State','Avaiable ICU Beds Per State', 'Smoking Rate Per State', 'Population Per State', 'Health Spending Per State')
     )
 
     # Radio buttons for selection
-    if radioBTN == 'Covid 19 Deaths Per State':
+    if radio_btn == 'Covid 19 Deaths Per State':
         st.title("Total Covid19 Death Rate (State) 100k")
         st.write(generate_choropleth(states, 'State', 'Deaths','reds'))
-    elif radioBTN == 'Avaiable ICU Beds Per State':
+    elif radio_btn == 'Avaiable ICU Beds Per State':
         st.title("Total ICUS Avaiable per State")
         st.write(generate_choropleth(states, 'State', 'ICU Beds','tealblues'))
-    elif radioBTN == 'Smoking Rate Per State':
+    elif radio_btn == 'Smoking Rate Per State':
         st.title("Smoking Rate Per State")
         st.write(generate_choropleth(states, 'State', 'Smoking Rate','browns'))
-    elif radioBTN == 'Population Per State' :
+    elif radio_btn == 'Population Per State' :
         st.title("Population Per State")
         st.write(generate_choropleth(states, 'State', 'Population','oranges'))
     else:
@@ -63,13 +63,12 @@ def page1():
         st.write(generate_choropleth(states, 'State', 'Health Spending','purples'))
          
     #Data set for state covid data
-    st.write(stateData)
+    st.write(state_data)
 
 def page2():
     st.title("County Data & Choropleth")
 
-    st.write(countiesData)
-
+    st.write(counties_data)
 
 def page3():
     st.title("Modelling/Predictions")
@@ -79,7 +78,7 @@ def page4():
     st.title("GPT Integration")
     # Add content for page 4
 
-# Dictionary to map page names to their corresponding functions
+# Dictionary to map page names to their corresponding
 pages = {
     "State Data & Choropleth": page1,
     "County Data & Choropleth": page2,
