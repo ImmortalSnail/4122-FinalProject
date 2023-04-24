@@ -9,14 +9,18 @@ from vega_datasets import data
 counties = alt.topo_feature(data.us_10m.url, 'counties')
 states = alt.topo_feature(data.us_10m.url, feature='states')
 
+
+stateData = pd.read_csv('COVID19_state.csv')
+vaccinations = pd.read_csv('us_state_vaccinations.csv')
+
+
 # Define pages as functions
 def page1():
     # Page title and data initialization
     st.title("State Data & Choropleth")
-    stateData = pd.read_csv('COVID19_state.csv')
     
     # Title of choropleth selection
-    st.title( "What choropleth would you like to see regarding COVID-19 Stats")
+    st.header( "What choropleth would you like to see regarding COVID-19 Stats")
 
     # Initializing radio button
     radioBTN = st.radio(
@@ -92,26 +96,54 @@ def page1():
 
     # Radio buttons for selection
     if radioBTN == 'Covid 19 Deaths Per State':
-        st.title("Total Covid19 Death Rate (State) 100k")
+        st.header("Total Covid19 Death Rate (State) 100k")
         st.write(covid_Death_State)
     elif radioBTN == 'Avaiable ICU Beds Per State':
-        st.title("Total ICUS Avaiable per State")
+        st.header("Total ICUS Avaiable per State")
         st.write(state_ICU)
     elif radioBTN == 'Smoking Rate Per State':
-        st.title("Smoking Rate Per State")
+        st.header("Smoking Rate Per State")
         st.write(state_Smoking)
     elif radioBTN == 'Population Per State' :
-        st.title("Population Per State")
+        st.header("Population Per State")
         st.write(pop_Density)
     else:
-        st.title("Health Spending Per State")
+        st.header("Health Spending Per State")
         st.write(health_spend)
-        
-        
-        
-        
+
     #Data set for state covid data
     st.write(stateData)
+    
+    
+def vaccinationPage():
+    st.title("Compare Vaccination Data")
+    location = st.sidebar.selectbox("First Location", vaccinations["location"].unique())
+    location2 = st.sidebar.selectbox("Second Location", vaccinations["location"].unique())
+
+    # Filter the data based on the State
+    filtered_data = vaccinations[vaccinations["location"] == location]
+    filtered_data2 = vaccinations[vaccinations["location"] == location2]
+
+    
+    chart = alt.Chart(filtered_data).mark_line(color="blue",interpolate="basis").encode(
+    x="date",
+    y= "total_vaccinations"
+    )
+    
+    chart2 =  alt.Chart(filtered_data2).mark_line(color="red",interpolate="basis").encode(
+    x="date",
+    y= "total_vaccinations"
+    )
+    
+    st.header(location + " Total Vaccinations")
+    st.altair_chart(chart, use_container_width=True)
+    
+    st.header(location2 + " Total Vaccinations")
+    st.altair_chart(chart2, use_container_width=True)
+    
+    #Display Vaccination Data
+    st.write(vaccinations)   
+    
 
 def page2():
     st.title("County Data & Choropleth")
@@ -128,10 +160,14 @@ def page4():
     st.title("GPT Integration")
     # Add content for page 4
 
+    
+    
+    
 # Dictionary to map page names to their corresponding functions
 pages = {
     "State Data & Choropleth": page1,
     "County Data & Choropleth": page2,
+    "Vaccination Information Charts": vaccinationPage,
     "Modelling/Predictions": page3,
     "GPT Integration": page4
 }
