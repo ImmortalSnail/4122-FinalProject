@@ -9,7 +9,7 @@ import streamlit as st
 from vega_datasets import data
 
 # Loading relevant data
-counties = alt.topo_feature(data.us_10m.url, 'counties')
+counties = alt.topo_feature(data.us_10m.url, feature='counties')
 states = alt.topo_feature(data.us_10m.url, feature='states')
 state_data = pd.read_csv('COVID19_state.csv')
 counties_data = pd.read_csv('us-counties.csv')
@@ -108,6 +108,19 @@ def vaccinationPage():
 
 def page2():
     st.title("County Data & Choropleth")
+
+
+    map_georgia =(
+    alt.Chart(data = counties)
+    .mark_geoshape(
+        stroke='black',
+        strokeWidth=1
+    )
+    .transform_calculate(state_id = "(datum.id / 1000)|0")
+    .transform_filter((alt.datum.state_id)==13)
+    )
+
+    map_georgia
 
     st.write(counties_data)
 
