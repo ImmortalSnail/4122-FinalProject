@@ -8,12 +8,17 @@ from sklearn.preprocessing import PolynomialFeatures
 import streamlit as st
 from vega_datasets import data
 
+st.set_page_config(page_title="My Streamlit App", page_icon=":syringe:", layout="wide")
+
+
 # Loading relevant data
 counties = alt.topo_feature(data.us_10m.url, 'counties')
 states = alt.topo_feature(data.us_10m.url, feature='states')
 state_data = pd.read_csv('COVID19_state.csv')
 counties_data = pd.read_csv('us-counties.csv')
-counties_data = counties_data.sample(n=4999)
+
+#limits dataset to 5000 samples uncomment if you want it 
+#counties_data = counties_data.sample(n=4999)
 
 # Choropleth generating function
 # topo is the feature the choropleth is focusing on, like either states or counties
@@ -78,6 +83,9 @@ def page1():
     st.write(state_data)
     
 def vaccinationPage():
+    
+    col1, col2 = st.columns(2)
+    
     st.title("Compare Vaccination Data")
     location = st.sidebar.selectbox("First Location", vaccinations["location"].unique())
     location2 = st.sidebar.selectbox("Second Location", vaccinations["location"].unique())
@@ -85,6 +93,8 @@ def vaccinationPage():
     # Filter the data based on the State
     filtered_data = vaccinations[vaccinations["location"] == location]
     filtered_data2 = vaccinations[vaccinations["location"] == location2]
+    
+    grouped_data = vaccinations.groupby("location").sum().reset_index()
 
     
     chart = alt.Chart(filtered_data).mark_line(color="blue",interpolate="basis").encode(
@@ -97,17 +107,61 @@ def vaccinationPage():
     y= "total_vaccinations"
     )
     
-    st.header(location + " Total Vaccinations")
-    st.altair_chart(chart, use_container_width=True)
+     
+    barchart = alt.Chart(grouped_data).mark_bar().encode(
+    x="location",
+    y="total_vaccinations",
+    tooltip=["location", "total_vaccinations"]
+    )
     
-    st.header(location2 + " Total Vaccinations")
-    st.altair_chart(chart2, use_container_width=True)
+    with col1:
+        st.header(location + " Total Vaccinations")
+        st.altair_chart(chart, use_container_width=True)
+    
+    with col2:
+        st.header(location2 + " Total Vaccinations")
+        st.altair_chart(chart2, use_container_width=True) 
+    
+    
+    
+    st.altair_chart(barchart, use_container_width=True)
     
     #Display Vaccination Data
     st.write(vaccinations)   
 
 def page2():
-    st.title("County Data & Choropleth")
+    st.title("County Data Choropleth & Graphs") 
+    
+    col1, col2 = st.columns(2)
+    
+    state = st.sidebar.selectbox("State", counties_data["state"].unique())
+    
+    #Data transforming to get the county to only show up for the State its in
+    counties_list = list(counties_data[counties_data["state"] == state]["county"].unique())
+    
+    county = st.sidebar.selectbox("County", counties_list)
+
+    # Filter the data based on the State
+    filtered_data = counties_data[ (counties_data["state"] == state) & (counties_data["county"] == county) ]
+    
+    
+    deathChart = alt.Chart(filtered_data).mark_line(color="blue",interpolate="basis").encode(
+    x="date",
+    y= "deaths"
+    )
+    
+    caseChart =  alt.Chart(filtered_data).mark_line(color="red",interpolate="basis").encode(
+    x="date",
+    y= "cases"
+    )
+   
+    with col1:
+        st.header("COVID-19 Deaths in " + county + " County, " + state  )
+        st.altair_chart(deathChart, use_container_width=True)
+    
+    with col2:
+        st.header("COVID-19 Cases in "  + county + " County, " + state )
+        st.altair_chart(caseChart, use_container_width=True)
 
     st.write(counties_data)
 
@@ -145,8 +199,8 @@ def page4():
 # Dictionary to map page names to their corresponding functions
 
 pages = {
-    "State Data & Choropleth": page1,
-    "County Data & Choropleth": page2,
+    "State Data Choropleths": page1,
+    "County Data Choropleth & Charts": page2,
     "Vaccination Information Charts": vaccinationPage,
     "Modelling/Predictions": page3,
     "GPT Integration": page4
