@@ -132,6 +132,36 @@ def vaccinationPage():
 def page2():
     st.title("County Data Choropleth & Graphs") 
     
+
+    counties_last = counties_data
+
+    # Group the dataframe by the qualitative columns.
+    counties_last = counties_last.groupby(['county', 'state', 'fips']).last().reset_index()
+
+    # Reset the index of the dataframe.
+    counties_last = counties_last.reset_index()
+
+    counties_last = counties_last.dropna()
+
+    # Convert 'fips' column to integer data type
+    counties_last['fips'] = counties_last['fips'].astype(int)
+
+    # Print the dataframe.
+    st.write(counties_last)
+
+    choropleth  = alt.Chart(counties).mark_geoshape(
+    ).encode(
+        color=alt.Color('deaths:Q', scale=alt.Scale(scheme="blues")),
+        tooltip=['county:O', 'deaths:Q']
+    ).transform_lookup(
+        lookup='id',
+        from_=alt.LookupData(counties_last, 'fips', ['deaths','county'])
+    ).transform_calculate(state_id = "(datum.id / 1000)|0").transform_filter((alt.datum.state_id)==1)
+    
+
+    choropleth
+
+
     col1, col2 = st.columns(2)
     
     state = st.sidebar.selectbox("State", counties_data["state"].unique())
@@ -162,19 +192,6 @@ def page2():
     with col2:
         st.header("COVID-19 Cases in "  + county + " County, " + state )
         st.altair_chart(caseChart, use_container_width=True)
-
-
-    map_georgia =(
-    alt.Chart(data = counties)
-    .mark_geoshape(
-        stroke='black',
-        strokeWidth=1
-    )
-    .transform_calculate(state_id = "(datum.id / 1000)|0")
-    .transform_filter((alt.datum.state_id)==13)
-    )
-
-    map_georgia
 
     st.write(counties_data)
 
