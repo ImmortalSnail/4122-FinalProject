@@ -10,7 +10,6 @@ from vega_datasets import data
 
 st.set_page_config(page_title="My Streamlit App", page_icon=":syringe:", layout="wide")
 
-
 # Loading relevant data
 counties = alt.topo_feature(data.us_10m.url, feature='counties')
 states = alt.topo_feature(data.us_10m.url, feature='states')
@@ -39,18 +38,50 @@ def generate_choropleth(topo, lookup, data, color):
     )
     return choropleth
 
+# Generate county choropleths
+# state_id is state name, used to generate id
+# data is the feature we are looking at
+# scheme_name is the color scheme name
+def gen_county_choro(state_id, data, scheme_name):
+    counties_last = counties_data
+
+    # Group the dataframe by the qualitative columns.
+    counties_last = counties_last.groupby(['county', 'state', 'fips']).last().reset_index()
+
+    # Reset the index of the dataframe.
+    counties_last = counties_last.reset_index()
+    counties_last = counties_last.dropna()
+
+    # Convert 'fips' column to integer data type
+    counties_last['fips'] = counties_last['fips'].astype(int)
+
+    # Generates choropleth
+    choropleth  = alt.Chart(counties).mark_geoshape(
+    ).encode(
+        color=alt.Color(data+':Q', scale=alt.Scale(scheme=scheme_name)),
+        tooltip=['county:O', data+':Q']
+    ).transform_lookup(
+        lookup='id',
+        from_=alt.LookupData(counties_last, 'fips', [data,'county'])
+    ).transform_calculate(state_id = "(datum.id / 1000)|0"
+    ).transform_filter(
+    (alt.datum.state_id)==state_data[state_data["State"] == state_id]["id"].iloc[0].item()
+    ).properties(
+    width=600,
+    height=600
+    )
+
+    return choropleth
 
 # Load the data
-#countiesData =  pd.read_csv('us-counties.csv')
-stateData = pd.read_csv('COVID19_state.csv')
+# countiesData =  pd.read_csv('us-counties.csv')
 vaccinations = pd.read_csv('us_state_vaccinations.csv')
-#countiesData = countiesData.sample(n=4999)
+# countiesData = countiesData.sample(n=4999)
 
 # Define pages as functions
 def page1():
     # Page title and data initialization
     st.title("State Data & Choropleth")
-
     
     # Title of choropleth selection
     st.header( "What choropleth would you like to see regarding COVID-19 Stats")
@@ -62,7 +93,6 @@ def page1():
     )
 
     # Radio buttons for selection
-
     if radio_btn == 'Covid 19 Deaths Per State':
         st.title("Total Covid19 Death Rate (State) 100k")
         st.write(generate_choropleth(states, 'State', 'Deaths','reds'))
@@ -79,7 +109,7 @@ def page1():
         st.title("Health Spending Per State")
         st.write(generate_choropleth(states, 'State', 'Health Spending','purples'))
          
-    #Data set for state covid data
+    # Data set for state covid data
     st.write(state_data)
     
 def vaccinationPage():
@@ -95,7 +125,6 @@ def vaccinationPage():
     filtered_data2 = vaccinations[vaccinations["location"] == location2]
     
     grouped_data = vaccinations.groupby("location").sum().reset_index()
-
     
     chart = alt.Chart(filtered_data).mark_line(color="blue",interpolate="basis").encode(
     x="date",
@@ -106,7 +135,6 @@ def vaccinationPage():
     x="date",
     y= "total_vaccinations"
     )
-    
      
     barchart = alt.Chart(grouped_data).mark_bar().encode(
     x="location",
@@ -122,59 +150,39 @@ def vaccinationPage():
         st.header(location2 + " Total Vaccinations")
         st.altair_chart(chart2, use_container_width=True) 
     
-    
-    
     st.altair_chart(barchart, use_container_width=True)
     
-    #Display Vaccination Data
+    # Display Vaccination Data
     st.write(vaccinations)   
 
 def page2():
     st.title("County Data Choropleth & Graphs") 
-    
 
-    counties_last = counties_data
-
-    # Group the dataframe by the qualitative columns.
-    counties_last = counties_last.groupby(['county', 'state', 'fips']).last().reset_index()
-
-    # Reset the index of the dataframe.
-    counties_last = counties_last.reset_index()
-
-    counties_last = counties_last.dropna()
-
-    # Convert 'fips' column to integer data type
-    counties_last['fips'] = counties_last['fips'].astype(int)
-
-    # Print the dataframe.
-    st.write(counties_last)
-
-    choropleth  = alt.Chart(counties).mark_geoshape(
-    ).encode(
-        color=alt.Color('deaths:Q', scale=alt.Scale(scheme="blues")),
-        tooltip=['county:O', 'deaths:Q']
-    ).transform_lookup(
-        lookup='id',
-        from_=alt.LookupData(counties_last, 'fips', ['deaths','county'])
-    ).transform_calculate(state_id = "(datum.id / 1000)|0").transform_filter((alt.datum.state_id)==1)
-    
-
-    choropleth
-
-
-    col1, col2 = st.columns(2)
-    
     state = st.sidebar.selectbox("State", counties_data["state"].unique())
+
+    # Define radio buttons
+    button = st.radio(
+    "Choropleth Options",
+        ('Deaths','Cases')
+    )
+
+    # Displays appropriate choropleth from selection
+    if button == 'Deaths':
+        st.title("Covid " + button + " in " + state + " by County")
+        st.write(gen_county_choro(state, 'deaths', 'tealblues'))
+    else:
+        st.title("Covid " + button + " in " + state + " by County")
+        st.write(gen_county_choro(state, 'cases', 'purples'))
     
-    #Data transforming to get the county to only show up for the State its in
+    col1, col2 = st.columns(2)
+    # Data transforming to get the county to only show up for the State its in
     counties_list = list(counties_data[counties_data["state"] == state]["county"].unique())
     
     county = st.sidebar.selectbox("County", counties_list)
 
     # Filter the data based on the State
     filtered_data = counties_data[ (counties_data["state"] == state) & (counties_data["county"] == county) ]
-    
-    
+
     deathChart = alt.Chart(filtered_data).mark_line(color="blue",interpolate="basis").encode(
     x="date",
     y= "deaths"
@@ -199,11 +207,11 @@ def page3():
     st.title("Modelling/Predictions")
     # Add polynomial features to Deaths column
     poly_features = PolynomialFeatures(degree=2)  # You can choose the degree of polynomial regression
-    X = stateData['Deaths'].values.reshape(-1, 1)  # Input feature
+    X = state_data['Deaths'].values.reshape(-1, 1)  # Input feature
     X_poly = poly_features.fit_transform(X)  # Transformed feature with polynomial features
-    stateData['Deaths_poly'] = X_poly[:, 1]  # Add transformed feature to stateData DataFrame
+    state_data['Deaths_poly'] = X_poly[:, 1]  # Add transformed feature to state_data DataFrame
     # Split data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X_poly, stateData['Deaths'], test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X_poly, state_data['Deaths'], test_size=0.2, random_state=42)
 
     # Fit polynomial regression model
     model = LinearRegression()
@@ -227,7 +235,6 @@ def page4():
     # Add content for page 4   
     
 # Dictionary to map page names to their corresponding functions
-
 pages = {
     "State Data Choropleths": page1,
     "County Data Choropleth & Charts": page2,
