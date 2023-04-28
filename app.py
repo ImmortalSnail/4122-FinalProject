@@ -202,40 +202,12 @@ def page2():
         st.altair_chart(caseChart, use_container_width=True)
 
     st.write(counties_data)
-
-def page3():
-    st.title("Modelling/Predictions")
-    # Add polynomial features to Deaths column
-    poly_features = PolynomialFeatures(degree=2)  # You can choose the degree of polynomial regression
-    X = state_data['Deaths'].values.reshape(-1, 1)  # Input feature
-    X_poly = poly_features.fit_transform(X)  # Transformed feature with polynomial features
-    state_data['Deaths_poly'] = X_poly[:, 1]  # Add transformed feature to state_data DataFrame
-    # Split data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X_poly, state_data['Deaths'], test_size=0.2, random_state=42)
-
-    # Fit polynomial regression model
-    model = LinearRegression()
-    model.fit(X_train, y_train)
-
-    # Make predictions on testing data
-    y_pred = model.predict(X_test)
-
-    # Calculate mean squared error
-    mse = mean_squared_error(y_test, y_pred)
-    print('Mean Squared Error:', mse)
-
-    # Make prediction for a new input value
-    new_input = np.array([[1000]])  # Example input value
-    new_input_poly = poly_features.transform(new_input)
-    prediction = model.predict(new_input_poly)
-    print('Prediction for new input value:', prediction)
     
 # Dictionary to map page names to their corresponding functions
 pages = {
     "State Data Choropleths": page1,
     "County Data Choropleth & Charts": page2,
     "Vaccination Information Charts": vaccinationPage,
-    "Modelling/Predictions": page3,
 }
 
 # Add a sidebar to the Streamlit app
