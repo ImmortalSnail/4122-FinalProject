@@ -229,10 +229,6 @@ def page3():
     new_input_poly = poly_features.transform(new_input)
     prediction = model.predict(new_input_poly)
     print('Prediction for new input value:', prediction)
-
-def page4():
-    st.title("GPT Integration")
-    # Add content for page 4   
     
 # Dictionary to map page names to their corresponding functions
 pages = {
@@ -240,7 +236,6 @@ pages = {
     "County Data Choropleth & Charts": page2,
     "Vaccination Information Charts": vaccinationPage,
     "Modelling/Predictions": page3,
-    "GPT Integration": page4
 }
 
 # Add a sidebar to the Streamlit app
