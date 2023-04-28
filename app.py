@@ -89,7 +89,7 @@ def page1():
     with col1:        
         
         # Initializing dropdown menu        
-        dropdownChoro = st.selectbox("Choropleth Options",('Covid 19 Deaths Per State','Covid Infections Per State','Avaiable ICU Beds Per State', 'Smoking Rate Per State', 'Population Per State', 'Health Spending Per State'))         
+        dropdownChoro = st.selectbox("Choropleth Options",('Covid 19 Deaths Per State','Covid Infections Per State','Physicians Per State','Avaiable ICU Beds Per State', 'Smoking Rate Per State', 'Population Per State', 'Health Spending Per State'))         
         
         # Dropdown buttons for selection
         if dropdownChoro == 'Covid 19 Deaths Per State':
@@ -98,7 +98,11 @@ def page1():
             
         elif dropdownChoro == 'Covid Infections Per State':
             st.title("Covid Infections Per State")
-            st.write(generate_choropleth(states, 'State', 'Infected','greens'))     
+            st.write(generate_choropleth(states, 'State', 'Infected','greens'))  
+        
+        elif dropdownChoro == 'Physicians Per State':
+            st.title("Physicians Per State")
+            st.write(generate_choropleth(states, 'State', 'Physicians','warmgreys')) 
             
         elif dropdownChoro == 'Avaiable ICU Beds Per State':
             st.title("ICU Beds Avaiable per State")
@@ -126,7 +130,7 @@ def page1():
             st.write(generate_choropleth(states, 'State', 'Age 55+','blues'))        
             
     with col2:        
-        dropdownChoro2 = st.selectbox("Second Choropleth Options",('Covid 19 Deaths Per State','Covid Infections Per State','Avaiable ICU Beds Per State', 'Smoking Rate Per State', 'Population Per State', 'Health Spending Per State')) 
+        dropdownChoro2 = st.selectbox("Second Choropleth Options",('Covid 19 Deaths Per State','Covid Infections Per State','Physicians Per State','Avaiable ICU Beds Per State', 'Smoking Rate Per State', 'Population Per State', 'Health Spending Per State')) 
         
         # Radio buttons for selection
         if dropdownChoro2 == 'Covid 19 Deaths Per State':
@@ -135,6 +139,9 @@ def page1():
         elif dropdownChoro2 == 'Covid Infections Per State':
             st.title("Covid Infections Per State")
             st.write(generate_choropleth(states, 'State', 'Infected','greens'))  
+        elif dropdownChoro2 == 'Physicians Per State':
+            st.title("Physicians Per State")
+            st.write(generate_choropleth(states, 'State', 'Physicians','warmgreys')) 
         elif dropdownChoro2 == 'Avaiable ICU Beds Per State':
             st.title("ICU Beds Avaiable per State")
             st.write(generate_choropleth(states, 'State', 'ICU Beds','tealblues'))
