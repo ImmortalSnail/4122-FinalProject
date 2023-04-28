@@ -1,5 +1,10 @@
 import altair as alt
+import numpy as np
 import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import PolynomialFeatures
 import streamlit as st
 from vega_datasets import data
 
@@ -28,7 +33,7 @@ def generate_choropleth(topo, lookup, data, color):
         lookup='id',
         from_=alt.LookupData(state_data, 'id', [data,lookup])
     ).project('albersUsa').properties(
-        width=800,
+        width=700,
         height=800
     )
     return choropleth
@@ -62,8 +67,8 @@ def gen_county_choro(state_id, data, scheme_name):
     ).transform_filter(
     (alt.datum.state_id)==state_data[state_data["State"] == state_id]["id"].iloc[0].item()
     ).properties(
-    width=600,
-    height=600
+    width= 1400,
+    height= 500
     )
 
     return choropleth
@@ -75,43 +80,95 @@ vaccinations = pd.read_csv('us_state_vaccinations.csv')
 
 # Define pages as functions
 def page1():
-    # Page title and data initialization
-    st.title("State Data & Choropleth")
     
-    # Title of choropleth selection
-    st.header( "What choropleth would you like to see regarding COVID-19 Stats")
-
-    # Initializing radio button
-    radio_btn = st.radio(
-    "Choropleth Options",
-        ('Covid 19 Deaths Per State','Avaiable ICU Beds Per State', 'Smoking Rate Per State', 'Population Per State', 'Health Spending Per State')
-    )
-
-    # Radio buttons for selection
-    if radio_btn == 'Covid 19 Deaths Per State':
-        st.title("Total Covid19 Death Rate (State) 100k")
-        st.write(generate_choropleth(states, 'State', 'Deaths','reds'))
-    elif radio_btn == 'Avaiable ICU Beds Per State':
-        st.title("Total ICUS Avaiable per State")
-        st.write(generate_choropleth(states, 'State', 'ICU Beds','tealblues'))
-    elif radio_btn == 'Smoking Rate Per State':
-        st.title("Smoking Rate Per State")
-        st.write(generate_choropleth(states, 'State', 'Smoking Rate','browns'))
-    elif radio_btn == 'Population Per State' :
-        st.title("Population Per State")
-        st.write(generate_choropleth(states, 'State', 'Population','oranges'))
-    else:
-        st.title("Health Spending Per State")
-        st.write(generate_choropleth(states, 'State', 'Health Spending','purples'))
-         
+    st.title("Mapping COVID-19 and Age Demographics: Insights for Each State")
+    
+    
+    #Split up into columns
+    col1, col2 = st.columns(2)
+    with col1:        
+        
+        # Initializing dropdown menu        
+        dropdownChoro = st.selectbox("Choropleth Options",('Covid 19 Deaths Per State','Covid Infections Per State','Avaiable ICU Beds Per State', 'Smoking Rate Per State', 'Population Per State', 'Health Spending Per State'))         
+        
+        # Dropdown buttons for selection
+        if dropdownChoro == 'Covid 19 Deaths Per State':
+            st.title("COVID19 Deaths")
+            st.write(generate_choropleth(states, 'State', 'Deaths','reds'))
+            
+        elif dropdownChoro == 'Covid Infections Per State':
+            st.title("Covid Infections Per State")
+            st.write(generate_choropleth(states, 'State', 'Infected','greens'))     
+            
+        elif dropdownChoro == 'Avaiable ICU Beds Per State':
+            st.title("ICU Beds Avaiable per State")
+            st.write(generate_choropleth(states, 'State', 'ICU Beds','tealblues'))
+        elif dropdownChoro == 'Smoking Rate Per State':
+            st.title("Smoking Rate Per State")
+            st.write(generate_choropleth(states, 'State', 'Smoking Rate','browns'))
+        elif dropdownChoro == 'Population Per State' :
+            st.title("Population Per State")
+            st.write(generate_choropleth(states, 'State', 'Population','oranges'))
+        else:
+            st.title("Health Spending Per State")
+            st.write(generate_choropleth(states, 'State', 'Health Spending','purples'))
+            
+        dropdown = st.selectbox("Select an Age Demographic to Explore",("Ages 0-25","Ages 26-54","Ages 55+"))     
+    
+        if dropdown == "Ages 0-25":
+            st.header("Age Distribution: Proportion of Total Population For Ages 0-25 ")
+            st.write(generate_choropleth(states, 'State', 'Age 0-25','blues'))
+        elif dropdown == "Ages 26-54":
+            st.header("Age Distribution: Proportion of Total Population For Ages 26-54 ")
+            st.write(generate_choropleth(states, 'State', 'Age 26-54','blues'))
+        else:
+            st.header("Age Distribution: Proportion of Total Population For Ages 55+ ")
+            st.write(generate_choropleth(states, 'State', 'Age 55+','blues'))        
+            
+    with col2:        
+        dropdownChoro2 = st.selectbox("Second Choropleth Options",('Covid 19 Deaths Per State','Covid Infections Per State','Avaiable ICU Beds Per State', 'Smoking Rate Per State', 'Population Per State', 'Health Spending Per State')) 
+        
+        # Radio buttons for selection
+        if dropdownChoro2 == 'Covid 19 Deaths Per State':
+            st.title("COVID19 Deaths")
+            st.write(generate_choropleth(states, 'State', 'Deaths','reds'))
+        elif dropdownChoro2 == 'Covid Infections Per State':
+            st.title("Covid Infections Per State")
+            st.write(generate_choropleth(states, 'State', 'Infected','greens'))  
+        elif dropdownChoro2 == 'Avaiable ICU Beds Per State':
+            st.title("ICU Beds Avaiable per State")
+            st.write(generate_choropleth(states, 'State', 'ICU Beds','tealblues'))
+        elif dropdownChoro2 == 'Smoking Rate Per State':
+            st.title("Smoking Rate Per State")
+            st.write(generate_choropleth(states, 'State', 'Smoking Rate','browns'))
+        elif dropdownChoro2 == 'Population Per State' :
+            st.title("Population Per State")
+            st.write(generate_choropleth(states, 'State', 'Population','oranges'))
+        else:
+            st.title("Health Spending Per State")
+            st.write(generate_choropleth(states, 'State', 'Health Spending','purples'))
+            
+        dropdown2 = st.selectbox("Select an Second Age Demographic to Explore",("Ages 0-25","Ages 26-54","Ages 55+"))     
+    
+        if dropdown2 == "Ages 0-25":
+            st.header("Age Distribution: Proportion of Total Population For Ages 0-25 ")
+            st.write(generate_choropleth(states, 'State', 'Age 0-25','blues'))
+        elif dropdown2 == "Ages 26-54":
+            st.header("Age Distribution: Proportion of Total Population For Ages 26-54 ")
+            st.write(generate_choropleth(states, 'State', 'Age 26-54','blues'))
+        else:
+            st.header("Age Distribution: Proportion of Total Population For Ages 55+ ")
+            st.write(generate_choropleth(states, 'State', 'Age 55+','blues'))
+            
     # Data set for state covid data
     st.write(state_data)
     
 def vaccinationPage():
     
-    col1, col2 = st.columns(2)
-    
     st.title("Compare Vaccination Data")
+    col1, col2 = st.columns(2)  
+    
+    
     location = st.sidebar.selectbox("First Location", vaccinations["location"].unique())
     location2 = st.sidebar.selectbox("Second Location", vaccinations["location"].unique())
 
@@ -120,38 +177,73 @@ def vaccinationPage():
     filtered_data2 = vaccinations[vaccinations["location"] == location2]
     
     grouped_data = vaccinations.groupby("location").sum().reset_index()
+    grouped_data = grouped_data[grouped_data["location"] != "United States"]
+    
+    usTotalData = vaccinations[vaccinations["location"] == "United States"]
     
     chart = alt.Chart(filtered_data).mark_line(color="blue",interpolate="basis").encode(
-    x="date",
-    y= "total_vaccinations"
+    x= alt.X("date", axis = alt.Axis(title='Date')),
+    y= alt.Y("total_vaccinations", axis = alt.Axis(title='Total Vaccinations')),
     )
     
     chart2 =  alt.Chart(filtered_data2).mark_line(color="red",interpolate="basis").encode(
-    x="date",
-    y= "total_vaccinations"
+    x=alt.X("date", axis = alt.Axis(title='Date')),
+    y= alt.Y("total_vaccinations", axis = alt.Axis(title='Total Vaccinations')),
     )
      
     barchart = alt.Chart(grouped_data).mark_bar().encode(
-    x="location",
-    y="total_vaccinations",
+    x= alt.X("location", axis = alt.Axis(title='State')),
+    y= alt.Y("total_vaccinations", axis = alt.Axis(title='Total Vaccinations')),
     tooltip=["location", "total_vaccinations"]
     )
     
+    fullyVaccinated =  alt.Chart(filtered_data).mark_line(color="blue",interpolate="basis").encode(
+    x=alt.X("date", axis = alt.Axis(title='Date')),
+    y= alt.Y("people_fully_vaccinated", axis = alt.Axis(title='Amount of People Fully Vaccinated ')),
+    )
+    
+    fullyVaccinated2 =  alt.Chart(filtered_data2).mark_line(color="red",interpolate="basis").encode(
+    x=alt.X("date", axis = alt.Axis(title='Date')),
+    y= alt.Y("people_fully_vaccinated", axis = alt.Axis(title='Amount of People Fully Vaccinated ')),
+    )
+    
+    totalvaccinatedOverTime =  alt.Chart(usTotalData).mark_line(color="green",interpolate="basis").encode(
+    x=alt.X("date", axis = alt.Axis(title='Date')),
+    y= alt.Y("total_vaccinations", axis = alt.Axis(title='Total Vaccinations')),
+    )
+    
+    fullyvaccinatedOverTime =  alt.Chart(usTotalData).mark_line(color="purple",interpolate="basis").encode(
+    x=alt.X("date", axis = alt.Axis(title='Date')),
+    y= alt.Y("people_fully_vaccinated", axis = alt.Axis(title='Amount of People Fully Vaccinated')),
+    )
+    
+    
     with col1:
-        st.header(location + " Total Vaccinations")
+        st.header(" Total Vaccinations: "+ location)
         st.altair_chart(chart, use_container_width=True)
+        st.header("Amount of People Fully Vaccinated: " + location)
+        st.altair_chart(fullyVaccinated, use_container_width=True) 
     
     with col2:
-        st.header(location2 + " Total Vaccinations")
+        st.header(" Total Vaccinations: "+ location2)
         st.altair_chart(chart2, use_container_width=True) 
+        st.header("Amount of People Fully Vaccinated: " + location2)
+        st.altair_chart(fullyVaccinated2, use_container_width=True)
     
+    st.header("Total Vaccinations by State in the U.S.")
     st.altair_chart(barchart, use_container_width=True)
+    
+    st.header("Total Vaccinations Over Time in the U.S. ")
+    st.altair_chart(totalvaccinatedOverTime, use_container_width=True)
+    
+    st.header("Amount of People Fully Vaccinated Over Time in the U.S. ")
+    st.altair_chart(fullyvaccinatedOverTime, use_container_width=True)
     
     # Display Vaccination Data
     st.write(vaccinations)   
 
 def page2():
-    st.title("County Data Choropleth & Graphs") 
+    st.title("Visualizing County-Level COVID-19 Data: Cases and Deaths") 
 
     state = st.sidebar.selectbox("State", counties_data["state"].unique())
 
@@ -163,10 +255,10 @@ def page2():
 
     # Displays appropriate choropleth from selection
     if button == 'Deaths':
-        st.title("Covid " + button + " in " + state + " by County")
+        st.header("Covid " + button + " in " + state + " by County")
         st.write(gen_county_choro(state, 'deaths', 'tealblues'))
     else:
-        st.title("Covid " + button + " in " + state + " by County")
+        st.header("Covid " + button + " in " + state + " by County")
         st.write(gen_county_choro(state, 'cases', 'purples'))
     
     col1, col2 = st.columns(2)
@@ -196,13 +288,13 @@ def page2():
         st.header("COVID-19 Cases in "  + county + " County, " + state )
         st.altair_chart(caseChart, use_container_width=True)
 
-    st.write(counties_data)
-    
+    #st.write(counties_data)
+
 # Dictionary to map page names to their corresponding functions
 pages = {
     "State Data Choropleths": page1,
     "County Data Choropleth & Charts": page2,
-    "Vaccination Information Charts": vaccinationPage,
+    "Vaccination Information Charts": vaccinationPage
 }
 
 # Add a sidebar to the Streamlit app
