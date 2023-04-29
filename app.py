@@ -168,7 +168,7 @@ def page1():
             st.write(generate_choropleth(states, 'State', 'Age 55+','blues'))
             
     # Data set for state covid data
-    st.write(state_data)
+    #st.write(state_data)
     
 def vaccinationPage():
     
@@ -246,8 +246,8 @@ def vaccinationPage():
     st.header("Amount of People Fully Vaccinated Over Time in the U.S. ")
     st.altair_chart(fullyvaccinatedOverTime, use_container_width=True)
     
-    # Display Vaccination Data
-    st.write(vaccinations)   
+    # Display Vaccination Data uncomment if you want 
+    #st.write(vaccinations)   
 
 def page2():
     st.title("Visualizing County-Level COVID-19 Data: Cases and Deaths") 
