@@ -45,7 +45,3 @@ This app was built using the following technologies:
 - Scikit-learn: a Python library for machine learning built on NumPy, SciPy, and matplotlib
 - Pandas: a Python library for data manipulation and analysis
 - NumPy: a Python library for numerical computing
-
-## Heroku Link
-
-This app will be deployed on Heroku once it is finished. This is so it can be used without needing to fetch the data sets.
